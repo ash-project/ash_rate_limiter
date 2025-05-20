@@ -36,10 +36,19 @@ defmodule AshRateLimiter.MixProject do
   end
 
   # Run "mix help compile.app" to learn about applications.
-  def application do
-    [
-      extra_applications: [:logger]
-    ]
+  if Mix.env() in [:dev, :test] do
+    def application do
+      [
+        extra_applications: [:logger],
+        mod: {Example.Application, []}
+      ]
+    end
+  else
+    def application do
+      [
+        extra_applications: [:logger]
+      ]
+    end
   end
 
   defp docs do

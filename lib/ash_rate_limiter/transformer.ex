@@ -4,7 +4,6 @@ defmodule AshRateLimiter.Transformer do
   """
   use Spark.Dsl.Transformer
   import Spark.Dsl.Transformer
-  alias Ash.Resource.Info
   alias Spark.Error.DslError
 
   @doc false
@@ -21,69 +20,63 @@ defmodule AshRateLimiter.Transformer do
   end
 
   defp transform_entity(entity, dsl) do
-    with {:ok, entity} <- get_action(entity, dsl),
-         :ok <- validate_limit(entity, dsl),
-         :ok <- validate_scale(entity, dsl),
-         {:ok, entity} <- validate_key(entity, dsl) do
-      {:ok, replace_entity(dsl, [:rate_limit], entity)}
+    with {:ok, action} <- validate_action(entity, dsl),
+         {:ok, dsl} <- add_change_or_preparation(entity, action, dsl) do
+      {:ok, dsl}
     end
   end
 
-  defp get_action(entity, dsl) do
-    case Info.action(dsl, entity.action) do
+  defp validate_action(entity, dsl) do
+    case Ash.Resource.Info.action(dsl, entity.action) do
       nil ->
         {:error,
          DslError.exception(
            module: get_persisted(dsl, :module),
-           path: [:rate_limit, :limit, entity.name, :action],
+           path: [:rate_limit, :action, entity.name, :action],
            message: """
            Action #{entity.action} not found.
            """
          )}
 
-      action ->
-        {:ok, %{entity | action: action}}
-    end
-  end
+      action when action.type in [:create, :read, :update, :destroy] ->
+        {:ok, action}
 
-  defp validate_limit(entity, dsl) do
-    case entity.limit do
-      i when is_integer(i) and i > 0 ->
-        :ok
-
-      _ ->
+      action when action.type == :action ->
         {:error,
          DslError.exception(
            module: get_persisted(dsl, :module),
-           path: [:rate_limit, :limit, entity.name, :limit],
+           path: [:rate_limit, :action, entity.name, :action],
            message: """
-           Limit must be an integer value greater than 0.
+           Generic actions are not supported by the rate limiter DSL, instead you should add a call to your hammer module directly inside your action implementation.
            """
          )}
     end
   end
 
-  defp validate_scale(entity, dsl) do
-    case entity.scale do
-      i when is_integer(i) and i >= 0 ->
-        :ok
+  defp add_change_or_preparation(entity, action, dsl) when action.type == :read,
+    do: add_preparation(entity, dsl)
 
-      _ ->
-        {:error,
-         DslError.exception(
-           module: get_persisted(dsl, :module),
-           path: [:rate_limit, :limit, entity.name, :limit],
-           message: """
-           Limit must be an integer value greater than 0 or a `Duration`.
-           """
-         )}
+  defp add_change_or_preparation(entity, _action, dsl), do: add_change(entity, dsl)
+
+  defp add_preparation(entity, dsl) do
+    with {:ok, preparation} <-
+           build_entity(Ash.Resource.Dsl, [:preparations], :prepare,
+             preparation:
+               {AshRateLimiter.ActionLimiter,
+                action: entity.action, limit: entity.limit, per: entity.per, key: entity.key}
+           ) do
+      add_entity(dsl, [:preparations], preparation)
     end
   end
 
-  defp validate_key(entity, _dsl) when is_binary(entity.key), do: {:ok, entity}
-
-  defp validate_key(entity, dsl) do
-    key = "#{inspect(get_persisted(dsl, :module))}:#{entity.action.name}"
-    {:ok, %{entity | key: key}}
+  defp add_change(entity, dsl) do
+    with {:ok, change} <-
+           build_entity(Ash.Resource.Dsl, [:changes], :change,
+             change:
+               {AshRateLimiter.ActionLimiter,
+                action: entity.action, limit: entity.limit, per: entity.per, key: entity.key}
+           ) do
+      add_entity(dsl, [:changes], change)
+    end
   end
 end
