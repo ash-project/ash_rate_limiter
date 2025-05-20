@@ -12,18 +12,25 @@ Configure rate limiting for actions.
 #### Hammer
 
 This library uses the [hammer](https://hex.pm/packages/hammer) package to provide
-rate limiting features.  Therefore we use hammer's terminology for options. See
-[hammer's documentation](https://hexdocs.pm/hammer) for more information.
+rate limiting features.  See [hammer's documentation](https://hexdocs.pm/hammer) for more information.
+
+#### Keys
+
+Hammer uses a "key" to identify which bucket to allocate an event against.  You can use this to tune the rate limit for specific users or events.
+
+You can provide either a statically configured string key, or a function of arity one or two, which when given a query/changeset and optional context object can generate a key.
+
+The default is `AshRateLimiter.key_for_action/2`. See it's docs for more information.
 
 
 ### Nested DSLs
- * [limit](#rate_limit-limit)
+ * [action](#rate_limit-action)
 
 
 ### Examples
 ```
 rate_limit do
-  limit :create, limit: 10, scale: :timer.minutes(5) hammer: MyApp.Hammer
+  action :create, limit: 10, per: :timer.minutes(5)
 end
 
 ```
@@ -39,10 +46,12 @@ end
 
 
 
-### rate_limit.limit
+### rate_limit.action
 
 
 Configure rate limiting for a single action.
+
+It does this by adding a global change or preparation to the resource with the provided configuration.  For more advanced configuration you can add [the change/preparation/validation](AshRateLimiter.Builtin.rate_limit/1) directly to your action.
 
 
 
@@ -54,11 +63,11 @@ Configure rate limiting for a single action.
 
 | Name | Type | Default | Docs |
 |------|------|---------|------|
-| [`action`](#rate_limit-limit-action){: #rate_limit-limit-action .spark-required} | `atom` |  | The name of the action to limit |
-| [`limit`](#rate_limit-limit-limit){: #rate_limit-limit-limit .spark-required} | `pos_integer` |  | The maximum number of events allowed within the given scale |
-| [`scale`](#rate_limit-limit-scale){: #rate_limit-limit-scale .spark-required} | `pos_integer` |  | The time period (in milliseconds) for in which events are counted |
-| [`key`](#rate_limit-limit-key){: #rate_limit-limit-key } | `String.t` |  | The unique key used to identify the action. Auto-generated if not set. |
-| [`description`](#rate_limit-limit-description){: #rate_limit-limit-description } | `String.t` |  | A description of the rate limit |
+| [`action`](#rate_limit-action-action){: #rate_limit-action-action .spark-required} | `atom` |  | The name of the action to limit |
+| [`limit`](#rate_limit-action-limit){: #rate_limit-action-limit .spark-required} | `pos_integer` |  | The maximum number of events allowed within the given period |
+| [`per`](#rate_limit-action-per){: #rate_limit-action-per .spark-required} | `pos_integer` |  | The time period (in milliseconds) for in which events are counted |
+| [`key`](#rate_limit-action-key){: #rate_limit-action-key } | `String.t \| (any -> any) \| (any, any -> any)` | `&AshRateLimiter.key_for_action/1` | The key used to identify the event. See above. |
+| [`description`](#rate_limit-action-description){: #rate_limit-action-description } | `String.t` |  | A description of the rate limit |
 
 
 

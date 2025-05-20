@@ -5,6 +5,7 @@ defmodule AshRateLimiter.ActionLimiter do
 
   use Ash.Resource.Change
   use Ash.Resource.Preparation
+  alias AshRateLimiter.LimitExceeded
 
   @option_schema Spark.Options.new!(
                    action: [
@@ -45,8 +46,10 @@ defmodule AshRateLimiter.ActionLimiter do
       changeset
       |> Ash.Changeset.before_action(fn changeset ->
         with {:ok, key} <- get_key(changeset, opts, context),
-             {:ok} do
+             :ok <- hammer_it(changeset, Keyword.put(opts, :key, key)) do
           changeset
+        else
+          {:error, reason} -> Ash.Changeset.add_error(changeset, reason)
         end
       end)
     else
@@ -57,6 +60,26 @@ defmodule AshRateLimiter.ActionLimiter do
   @doc false
   @impl true
   def prepare(query, opts, context) do
+    if is_nil(opts[:action]) or opts[:action] == query.action do
+      query
+      |> Ash.Query.before_action(fn query ->
+        with {:ok, key} <- get_key(query, opts, context),
+             :ok <- hammer_it(query, Keyword.put(opts, :key, key)) do
+          query
+        else
+          {:error, reason} -> Ash.Query.add_error(query, reason)
+        end
+      end)
+    end
+  end
+
+  defp hammer_it(changeset_or_query, opts) do
+    hammer = AshRateLimiter.Info.rate_limit_hammer!(changeset_or_query.resource)
+
+    case hammer.hit(opts[:key], opts[:per], opts[:limit]) do
+      {:allow, _} -> :ok
+      {:deny, _} -> raise LimitExceeded, [{:hammer, hammer} | opts]
+    end
   end
 
   defp get_key(changeset_or_query, opts, context) do

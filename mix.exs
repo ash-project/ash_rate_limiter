@@ -89,7 +89,6 @@ defmodule AshRateLimiter.MixProject do
       {:doctor, "~> 0.22", only: [:dev, :test], runtime: false},
       {:ex_check, "~> 0.16", only: [:dev, :test], runtime: false},
       {:ex_doc, "~> 0.37", only: [:dev, :test], runtime: false},
-      {:faker, "~> 0.18", only: [:dev, :test]},
       {:git_ops, "~> 2.0", only: [:dev, :test], runtime: false},
       {:igniter, "~> 0.5", only: [:dev, :test], optional: true},
       {:mix_audit, "~> 2.0", only: [:dev, :test], runtime: false},

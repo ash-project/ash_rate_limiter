@@ -19,7 +19,7 @@ defmodule AshRateLimiter do
 
     You can provide either a statically configured string key, or a function of arity one or two, which when given a query/changeset and optional context object can generate a key.
 
-    The default is `AshRateLimiter.key_for_action/1`. See it's docs for more information.
+    The default is `AshRateLimiter.key_for_action/2`. See it's docs for more information.
     """,
     examples: [
       """
@@ -149,18 +149,19 @@ defmodule AshRateLimiter do
       "example/post/destroy"
 
       iex> Example.Post
-      ...> |> Ash.Changeset.for_create(:create, post_attrs(), actor: %{role: :time_traveller})
-      ...> |> key_for_action(%{}, include_actor_attributes: [:role])
-      "example/post/create?actor[role]=time_traveller"
+      ...> |> Ash.Changeset.for_create(:create, post_attrs())
+      ...> |> key_for_action(%{actor: %{role: :time_traveller}}, include_actor_attributes: [:role])
+      "example/post/create?actor%5Brole%5D=time_traveller"
 
       iex> Example.Post
-      ...> |> Ash.Changeset.for_create(:create, post_attrs(), tenant: "Hill Valley Telegraph")
+      ...> |> Ash.Changeset.new()
+      ...> |> Ash.Changeset.set_tenant("Hill Valley Telegraph")
+      ...> |> Ash.Changeset.for_create(:create, post_attrs())
       ...> |> key_for_action(%{}, include_tenant?: true)
       "example/post/create?tenant=Hill%20Valley%20Telegraph"
   """
   def key_for_action(query_or_changeset, context, opts \\ []) do
     opts = Spark.Options.validate!(opts, @key_for_action_schema)
-    context = Ash.Context.to_opts(context)
 
     domain = Ash.Domain.Info.short_name(query_or_changeset.domain)
     resource = Ash.Resource.Info.short_name(query_or_changeset.resource)
@@ -183,13 +184,13 @@ defmodule AshRateLimiter do
       end)
       |> concat_result(fn ->
         context
-        |> Keyword.get(:actor, %{})
+        |> Map.get(:actor, %{})
         |> Map.take(opts[:include_actor_attributes])
         |> Enum.map(fn {k, v} -> {"actor[#{k}]", v} end)
       end)
       |> concat_result(fn ->
         if opts[:include_tenant?] do
-          [{"tenant", context[:tenant]}]
+          [{"tenant", context[:tenant] || query_or_changeset.tenant}]
         else
           []
         end
