@@ -6,11 +6,13 @@ defmodule Example.Post do
     defaults [:read, :destroy, create: :*, update: :*]
 
     create :limited_create, accept: :*
+    read :limited_read
   end
 
   rate_limit do
     hammer Example.Hammer
-    # action :limited_create, limit: 3, per: :timer.minutes(5)
+    action :limited_create, limit: 3, per: :timer.seconds(3), key: &key_fun/2
+    action :limited_read, limit: 3, per: :timer.seconds(3), key: &key_fun/2
   end
 
   attributes do
@@ -25,4 +27,6 @@ defmodule Example.Post do
     table :posts
     private? true
   end
+
+  defp key_fun(_, context), do: context.key
 end

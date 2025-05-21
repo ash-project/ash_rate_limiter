@@ -38,6 +38,7 @@ defmodule AshRateLimiter do
         """,
         target: __MODULE__,
         identifier: :action,
+        args: [:action],
         schema: [
           action: [
             type: :atom,
@@ -57,7 +58,7 @@ defmodule AshRateLimiter do
           key: [
             type: {:or, [:string, {:fun, 1}, {:fun, 2}]},
             required: false,
-            default: &AshRateLimiter.key_for_action/1,
+            default: &AshRateLimiter.key_for_action/2,
             doc: "The key used to identify the event. See above."
           ],
           description: [
@@ -79,15 +80,16 @@ defmodule AshRateLimiter do
 
   defstruct [:__identifier__, :action, :limit, :per, :key, :description]
 
+  @type keyfun ::
+          (Ash.Query.t() | Ash.Changeset.t() -> String.t())
+          | (Ash.Query.t() | Ash.Changeset.t(), map -> String.t())
+
   @type t :: %__MODULE__{
           __identifier__: any,
           action: atom,
           limit: pos_integer,
           per: pos_integer | Duration.t(),
-          key:
-            String.t()
-            | (Ash.Query.t() | Ash.Changeset.t() -> String.t())
-            | (Ash.Query.t() | Ash.Changeset.t(), Ash.Context.t() -> String.t()),
+          key: String.t() | keyfun,
           description: nil | String.t()
         }
 
@@ -184,7 +186,8 @@ defmodule AshRateLimiter do
       end)
       |> concat_result(fn ->
         context
-        |> Map.get(:actor, %{})
+        |> Map.get(:actor)
+        |> then(&(&1 || %{}))
         |> Map.take(opts[:include_actor_attributes])
         |> Enum.map(fn {k, v} -> {"actor[#{k}]", v} end)
       end)

@@ -81,6 +81,7 @@ defmodule AshRateLimiter.MixProject do
     [
       {:ash, "~> 3.0"},
       {:hammer, "~> 7.0"},
+      {:plug, "~> 1.17", optional: true},
       {:spark, "~> 2.0"},
       {:simple_sat, "~> 0.1", only: [:dev, :test]},
       {:splode, "~> 0.2"},

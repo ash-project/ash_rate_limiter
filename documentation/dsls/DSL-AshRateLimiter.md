@@ -47,6 +47,9 @@ end
 
 
 ### rate_limit.action
+```elixir
+action action
+```
 
 
 Configure rate limiting for a single action.
@@ -58,15 +61,18 @@ It does this by adding a global change or preparation to the resource with the p
 
 
 
-
-### Options
+### Arguments
 
 | Name | Type | Default | Docs |
 |------|------|---------|------|
 | [`action`](#rate_limit-action-action){: #rate_limit-action-action .spark-required} | `atom` |  | The name of the action to limit |
+### Options
+
+| Name | Type | Default | Docs |
+|------|------|---------|------|
 | [`limit`](#rate_limit-action-limit){: #rate_limit-action-limit .spark-required} | `pos_integer` |  | The maximum number of events allowed within the given period |
 | [`per`](#rate_limit-action-per){: #rate_limit-action-per .spark-required} | `pos_integer` |  | The time period (in milliseconds) for in which events are counted |
-| [`key`](#rate_limit-action-key){: #rate_limit-action-key } | `String.t \| (any -> any) \| (any, any -> any)` | `&AshRateLimiter.key_for_action/1` | The key used to identify the event. See above. |
+| [`key`](#rate_limit-action-key){: #rate_limit-action-key } | `String.t \| (any -> any) \| (any, any -> any)` | `&AshRateLimiter.key_for_action/2` | The key used to identify the event. See above. |
 | [`description`](#rate_limit-action-description){: #rate_limit-action-description } | `String.t` |  | A description of the rate limit |
 
 

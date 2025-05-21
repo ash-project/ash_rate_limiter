@@ -4,7 +4,13 @@ defmodule AshRateLimiter.Transformer do
   """
   use Spark.Dsl.Transformer
   import Spark.Dsl.Transformer
+  alias Ash.Resource.{Dsl, Info}
+  alias AshRateLimiter.{Change, Preparation}
   alias Spark.Error.DslError
+
+  @doc false
+  @impl true
+  def after?(_), do: true
 
   @doc false
   @impl true
@@ -20,19 +26,18 @@ defmodule AshRateLimiter.Transformer do
   end
 
   defp transform_entity(entity, dsl) do
-    with {:ok, action} <- validate_action(entity, dsl),
-         {:ok, dsl} <- add_change_or_preparation(entity, action, dsl) do
-      {:ok, dsl}
+    with {:ok, action} <- validate_action(entity, dsl) do
+      add_change_or_preparation(entity, action, dsl)
     end
   end
 
   defp validate_action(entity, dsl) do
-    case Ash.Resource.Info.action(dsl, entity.action) do
+    case Info.action(dsl, entity.action) do
       nil ->
         {:error,
          DslError.exception(
            module: get_persisted(dsl, :module),
-           path: [:rate_limit, :action, entity.name, :action],
+           path: [:rate_limit, :action, entity.action, :action],
            message: """
            Action #{entity.action} not found.
            """
@@ -45,7 +50,7 @@ defmodule AshRateLimiter.Transformer do
         {:error,
          DslError.exception(
            module: get_persisted(dsl, :module),
-           path: [:rate_limit, :action, entity.name, :action],
+           path: [:rate_limit, :action, entity.action, :action],
            message: """
            Generic actions are not supported by the rate limiter DSL, instead you should add a call to your hammer module directly inside your action implementation.
            """
@@ -60,23 +65,23 @@ defmodule AshRateLimiter.Transformer do
 
   defp add_preparation(entity, dsl) do
     with {:ok, preparation} <-
-           build_entity(Ash.Resource.Dsl, [:preparations], :prepare,
+           build_entity(Dsl, [:preparations], :prepare,
              preparation:
-               {AshRateLimiter.ActionLimiter,
+               {Preparation,
                 action: entity.action, limit: entity.limit, per: entity.per, key: entity.key}
            ) do
-      add_entity(dsl, [:preparations], preparation)
+      {:ok, add_entity(dsl, [:preparations], preparation)}
     end
   end
 
   defp add_change(entity, dsl) do
     with {:ok, change} <-
-           build_entity(Ash.Resource.Dsl, [:changes], :change,
+           build_entity(Dsl, [:changes], :change,
              change:
-               {AshRateLimiter.ActionLimiter,
+               {Change,
                 action: entity.action, limit: entity.limit, per: entity.per, key: entity.key}
            ) do
-      add_entity(dsl, [:changes], change)
+      {:ok, add_entity(dsl, [:changes], change)}
     end
   end
 end

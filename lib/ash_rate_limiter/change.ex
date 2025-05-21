@@ -1,19 +1,19 @@
-defmodule AshRateLimiter.ActionLimiter do
+defmodule AshRateLimiter.Change do
   @moduledoc """
-  Implements both the `Ash.Resource.Change` and `Ash.Resource.Preparation` behaviours for the `AshRateLimiter` resource extension.
+  A resource change which implements rate limiting.
   """
-
   use Ash.Resource.Change
-  use Ash.Resource.Preparation
-  alias AshRateLimiter.LimitExceeded
+  alias Ash.Changeset
+  alias AshRateLimiter.{Info, LimitExceeded}
+  alias Spark.Options
 
-  @option_schema Spark.Options.new!(
+  @option_schema Options.new!(
                    action: [
                      type: {:or, [nil, :atom]},
                      required: false,
                      default: nil,
                      doc:
-                       "If provided, then only changesets/queries matching the provided action name will be limited, otherwise all actions are."
+                       "If provided, then only changesets matching the provided action name will be limited, otherwise all actions are."
                    ],
                    limit: [
                      type: :pos_integer,
@@ -34,22 +34,25 @@ defmodule AshRateLimiter.ActionLimiter do
                  )
 
   @doc false
-  @impl Ash.Resource.Change
-  def init(options) do
-    Spark.Options.validate(options, @option_schema)
-  end
+  @impl true
+  def init(options), do: Options.validate(options, @option_schema)
 
   @doc false
   @impl true
   def change(changeset, opts, context) do
-    if is_nil(opts[:action]) or opts[:action] == changeset.action do
+    if is_nil(opts[:action]) or opts[:action] == changeset.action.name do
       changeset
-      |> Ash.Changeset.before_action(fn changeset ->
+      |> Changeset.before_action(fn changeset ->
+        context =
+          context
+          |> Map.from_struct()
+          |> Map.merge(changeset.context)
+
         with {:ok, key} <- get_key(changeset, opts, context),
              :ok <- hammer_it(changeset, Keyword.put(opts, :key, key)) do
           changeset
         else
-          {:error, reason} -> Ash.Changeset.add_error(changeset, reason)
+          {:error, reason} -> Changeset.add_error(changeset, reason)
         end
       end)
     else
@@ -57,43 +60,27 @@ defmodule AshRateLimiter.ActionLimiter do
     end
   end
 
-  @doc false
-  @impl true
-  def prepare(query, opts, context) do
-    if is_nil(opts[:action]) or opts[:action] == query.action do
-      query
-      |> Ash.Query.before_action(fn query ->
-        with {:ok, key} <- get_key(query, opts, context),
-             :ok <- hammer_it(query, Keyword.put(opts, :key, key)) do
-          query
-        else
-          {:error, reason} -> Ash.Query.add_error(query, reason)
-        end
-      end)
-    end
-  end
-
-  defp hammer_it(changeset_or_query, opts) do
-    hammer = AshRateLimiter.Info.rate_limit_hammer!(changeset_or_query.resource)
+  defp hammer_it(changeset, opts) do
+    hammer = Info.rate_limit_hammer!(changeset.resource)
 
     case hammer.hit(opts[:key], opts[:per], opts[:limit]) do
       {:allow, _} -> :ok
-      {:deny, _} -> raise LimitExceeded, [{:hammer, hammer} | opts]
+      {:deny, _} -> {:error, LimitExceeded.exception([{:hammer, hammer} | opts])}
     end
   end
 
-  defp get_key(changeset_or_query, opts, context) do
+  defp get_key(changeset, opts, context) do
     case opts[:key] do
       key when is_binary(key) and byte_size(key) > 0 ->
         {:ok, key}
 
       keyfun when is_function(keyfun, 1) ->
-        changeset_or_query
+        changeset
         |> keyfun.()
         |> handle_keyfun_result()
 
       keyfun when is_function(keyfun, 2) ->
-        changeset_or_query
+        changeset
         |> keyfun.(context)
         |> handle_keyfun_result()
 
@@ -102,6 +89,6 @@ defmodule AshRateLimiter.ActionLimiter do
     end
   end
 
-  defp handle_keyfun_result(key) when is_binary(key) and byte_size(key), do: {:ok, key}
+  defp handle_keyfun_result(key) when is_binary(key) and byte_size(key) > 0, do: {:ok, key}
   defp handle_keyfun_result(key), do: {:error, "Invalid key: `#{inspect(key)}`"}
 end
