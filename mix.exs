@@ -1,7 +1,7 @@
 defmodule AshRateLimiter.MixProject do
   use Mix.Project
 
-  @version "0.1.0"
+  @version "0.1.1"
 
   def project do
     [
@@ -31,7 +31,7 @@ defmodule AshRateLimiter.MixProject do
         "Ash" => "https://www.ash-hq.org/"
       },
       source_url: "https://github.com/ash-project/ash_rate_limiter",
-      files: ~w[lib src .formatter.exs mix.exs README* LICENSE* CHANGELOG* documentation]
+      files: ~w[lib .formatter.exs mix.exs README* LICENSE* CHANGELOG* documentation]
     ]
   end
 

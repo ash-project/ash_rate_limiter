@@ -20,7 +20,7 @@ Add `ash_rate_limiter` to your list of dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:ash_rate_limiter, "~> 0.1.0"}
+    {:ash_rate_limiter, "~> 0.1.1"}
   ]
 end
 ```
