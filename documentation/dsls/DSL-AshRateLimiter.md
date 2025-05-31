@@ -54,7 +54,7 @@ action action
 
 Configure rate limiting for a single action.
 
-It does this by adding a global change or preparation to the resource with the provided configuration.  For more advanced configuration you can add [the change/preparation/validation](AshRateLimiter.Builtin.rate_limit/1) directly to your action.
+It does this by adding a global change or preparation to the resource with the provided configuration.  For more advanced configuration you can add the change/preparation directly to your action using `AshRateLimiter.BuiltinChanges.rate_limit/1` or `AshRateLimiter.BuiltinPreparations.rate_limit/1`.
 
 
 

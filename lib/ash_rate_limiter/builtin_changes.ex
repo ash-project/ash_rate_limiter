@@ -8,7 +8,7 @@ defmodule AshRateLimiter.BuiltinChanges do
                         limit: [
                           type: :pos_integer,
                           required: true,
-                          doc: "The maximum number of events allowed within the given wcale"
+                          doc: "The maximum number of events allowed within the given scale"
                         ],
                         per: [
                           type: :pos_integer,
