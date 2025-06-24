@@ -27,23 +27,13 @@ end
 
 ## Quick Start
 
-1. **Configure Hammer**: First, you need to configure a Hammer backend. For development, you can use the ETS backend:
+1. **Add a Hammer module**: You need to create a Hammer module:
 
 ```elixir
-# config/config.exs
-config :hammer,
-  backend: {Hammer.Backend.ETS, []}
-```
-
-For production, consider using Redis:
-
-```elixir
-# config/config.exs  
-config :hammer,
-  backend: {Hammer.Backend.Redis, [
-    host: "localhost",
-    port: 6379
-  ]}
+# lib/my_app/hammer.ex
+defmodule MyApp.Hammer do
+  use Hammer, backend: :ets
+end
 ```
 
 2. **Add to your resource**: Use the `rate_limit` DSL section in your Ash resource:
@@ -56,7 +46,7 @@ defmodule MyApp.Post do
 
   rate_limit do
     # Configure hammer backend
-    hammer Hammer
+    hammer MyApp.Hammer
     
     # Limit create action to 10 requests per 5 minutes
     action :create, limit: 10, per: :timer.minutes(5)
@@ -77,7 +67,7 @@ end
 
 ```elixir
 rate_limit do
-  hammer Hammer
+  hammer MyApp.Hammer
   action :create, limit: 5, per: :timer.minutes(1)
 end
 ```
@@ -86,7 +76,7 @@ end
 
 ```elixir
 rate_limit do
-  hammer Hammer
+  hammer MyApp.Hammer
   action :create, 
     limit: 10, 
     per: :timer.minutes(5),
@@ -100,7 +90,7 @@ end
 
 ```elixir
 rate_limit do
-  hammer Hammer
+  hammer MyApp.Hammer
   action :create, limit: 10, per: :timer.minutes(5)
   action :update, limit: 20, per: :timer.minutes(5) 
   action :read, limit: 100, per: :timer.minutes(1)
@@ -179,18 +169,6 @@ end
 ```
 
 In web applications, the exception includes `Plug.Exception` behaviour for automatic HTTP 429 responses.
-
-## Testing
-
-In test environments, you may want to disable rate limiting or use a test-friendly configuration:
-
-```elixir
-# config/test.exs
-config :hammer,
-  backend: {Hammer.Backend.ETS, []}
-
-# Or disable rate limiting entirely in tests by using a mock
-```
 
 ## Reference
 
