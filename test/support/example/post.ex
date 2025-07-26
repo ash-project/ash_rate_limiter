@@ -7,6 +7,7 @@ defmodule Example.Post do
 
     create :limited_create, accept: :*
     read :limited_read
+    update :unlimited_update, accept: [:title, :body]
   end
 
   rate_limit do
