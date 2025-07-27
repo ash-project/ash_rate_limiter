@@ -67,9 +67,7 @@ defmodule AshRateLimiter.Transformer do
   defp add_preparation_to_action(entity, action, dsl) do
     with {:ok, preparation} <-
            build_entity(Dsl, [:preparations], :prepare,
-             preparation:
-               {Preparation,
-                action: entity.action, limit: entity.limit, per: entity.per, key: entity.key}
+             preparation: {Preparation, limit: entity.limit, per: entity.per, key: entity.key}
            ) do
       updated_action = %{action | preparations: [preparation | action.preparations]}
       {:ok, replace_entity(dsl, [:actions], updated_action, &(&1.name == action.name))}
@@ -79,9 +77,7 @@ defmodule AshRateLimiter.Transformer do
   defp add_change_to_action(entity, action, dsl) do
     with {:ok, change} <-
            build_entity(Dsl, [:changes], :change,
-             change:
-               {Change,
-                action: entity.action, limit: entity.limit, per: entity.per, key: entity.key}
+             change: {Change, limit: entity.limit, per: entity.per, key: entity.key}
            ) do
       updated_action = %{action | changes: [change | action.changes]}
       {:ok, replace_entity(dsl, [:actions], updated_action, &(&1.name == action.name))}
