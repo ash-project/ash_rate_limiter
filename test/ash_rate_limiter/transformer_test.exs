@@ -1,5 +1,10 @@
 defmodule AshRateLimiter.TransformerTest do
   use ExUnit.Case, async: true
+  alias Ash.Error.Forbidden
+  alias Ash.Resource.Info
+  alias AshRateLimiter.Change
+  alias AshRateLimiter.LimitExceeded
+  alias AshRateLimiter.Preparation
   alias Example.Post
 
   describe "transformer behavior" do
@@ -24,8 +29,8 @@ defmodule AshRateLimiter.TransformerTest do
       {:ok, _} = Ash.create(changeset, opts)
       {:error, error} = Ash.create(changeset, opts)
 
-      assert %Ash.Error.Forbidden{errors: [error]} = error
-      assert %AshRateLimiter.LimitExceeded{} = error
+      assert %Forbidden{errors: [error]} = error
+      assert %LimitExceeded{} = error
     end
 
     test "non-rate limited actions work without interference" do
@@ -50,27 +55,27 @@ defmodule AshRateLimiter.TransformerTest do
 
     test "changes are added to specific actions only" do
       # Rate limited create action should have a change
-      limited_create_action = Ash.Resource.Info.action(Post, :limited_create)
+      limited_create_action = Info.action(Post, :limited_create)
       assert length(limited_create_action.changes) == 1
 
       change = hd(limited_create_action.changes)
-      assert elem(change.change, 0) == AshRateLimiter.Change
+      assert elem(change.change, 0) == Change
 
       # Non-rate limited update action should have no changes
-      unlimited_update_action = Ash.Resource.Info.action(Post, :unlimited_update)
+      unlimited_update_action = Info.action(Post, :unlimited_update)
       assert unlimited_update_action.changes == []
     end
 
     test "preparations are added to specific actions only" do
       # Rate limited read action should have a preparation
-      limited_read_action = Ash.Resource.Info.action(Post, :limited_read)
+      limited_read_action = Info.action(Post, :limited_read)
       assert length(limited_read_action.preparations) == 1
 
       preparation = hd(limited_read_action.preparations)
-      assert elem(preparation.preparation, 0) == AshRateLimiter.Preparation
+      assert elem(preparation.preparation, 0) == Preparation
 
       # Non-rate limited read action should have no preparations
-      default_read_action = Ash.Resource.Info.action(Post, :read)
+      default_read_action = Info.action(Post, :read)
       assert default_read_action.preparations == []
     end
   end
