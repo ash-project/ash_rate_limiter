@@ -44,13 +44,11 @@ end
   def start(_type, _args) do
     children = [
       # ...
-      # Add the below line
+      # Add the line below:
       {MyApp.Hammer, clean_period: :timer.minutes(1)},
       # ...
     ]
 
-    # See https://hexdocs.pm/elixir/Supervisor.html
-    # for other strategies and supported options
     opts = [strategy: :one_for_one, name: MyApp.Supervisor]
     Supervisor.start_link(children, opts)
   end
