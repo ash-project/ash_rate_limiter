@@ -36,7 +36,27 @@ defmodule MyApp.Hammer do
 end
 ```
 
-2. **Add to your resource**: Use the `rate_limit` DSL section in your Ash resource:
+2. **Add the rate limiter to your application's supervision tree**: (more information about `:clean_period` in [Hammer](https://hexdocs.pm/hammer/tutorial.html#step-2-start-the-rate-limiter)):
+
+```elixir
+# lib/my_app/application.ex
+  @impl true
+  def start(_type, _args) do
+    children = [
+      # ...
+      # Add the below line
+      {MyApp.Hammer, clean_period: :timer.minutes(1)},
+      # ...
+    ]
+
+    # See https://hexdocs.pm/elixir/Supervisor.html
+    # for other strategies and supported options
+    opts = [strategy: :one_for_one, name: MyApp.Supervisor]
+    Supervisor.start_link(children, opts)
+  end
+```
+
+3. **Add to your resource**: Use the `rate_limit` DSL section in your Ash resource:
 
 ```elixir
 defmodule MyApp.Post do
@@ -59,7 +79,7 @@ defmodule MyApp.Post do
 end
 ```
 
-3. **That's it!** Your actions are now rate limited. When the limit is exceeded, an `AshRateLimiter.LimitExceeded` error will be raised.
+4. **That's it!** Your actions are now rate limited. When the limit is exceeded, an `AshRateLimiter.LimitExceeded` error will be raised.
 
 ## Basic Usage
 
