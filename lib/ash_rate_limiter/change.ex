@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2025 James Harton
+#
+# SPDX-License-Identifier: MIT
+
 defmodule AshRateLimiter.Change do
   @moduledoc """
   A resource change which implements rate limiting.

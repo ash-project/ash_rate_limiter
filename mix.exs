@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2025 James Harton
+#
+# SPDX-License-Identifier: MIT
+
 defmodule AshRateLimiter.MixProject do
   use Mix.Project
 
@@ -27,8 +31,13 @@ defmodule AshRateLimiter.MixProject do
       ],
       licenses: ["MIT"],
       links: %{
-        "Source" => "https://github.com/ash-project/ash_rate_limiter",
-        "Ash" => "https://www.ash-hq.org/"
+        "GitHub" => "https://github.com/ash-project/ash_rate_limiter",
+        "Changelog" => "https://github.com/ash-project/ash_rate_limiter/blob/main/CHANGELOG.md",
+        "Discord" => "https://discord.gg/HTHRaaVPUc",
+        "Website" => "https://ash-hq.org",
+        "Forum" => "https://elixirforum.com/c/elixir-framework-forums/ash-framework-forum",
+        "REUSE Compliance" =>
+          "https://api.reuse.software/info/github.com/ash-project/ash_rate_limiter"
       },
       source_url: "https://github.com/ash-project/ash_rate_limiter",
       files: ~w[lib .formatter.exs mix.exs README* LICENSE* CHANGELOG* documentation]
@@ -57,7 +66,6 @@ defmodule AshRateLimiter.MixProject do
       extras: [
         "README.md",
         "CHANGELOG.md",
-        "LICENSE.md",
         "documentation/dsls/DSL-AshRateLimiter.md"
       ],
       filter_modules: ~r/^Elixir\.AshRateLimiter/

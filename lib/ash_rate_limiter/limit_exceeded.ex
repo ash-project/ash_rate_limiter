@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2025 James Harton
+#
+# SPDX-License-Identifier: MIT
+
 defmodule AshRateLimiter.LimitExceeded do
   @moduledoc """
   An exception which is raised or returned when an action invocation exceeds the defined limits.

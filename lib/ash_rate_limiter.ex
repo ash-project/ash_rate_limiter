@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2025 James Harton
+#
+# SPDX-License-Identifier: MIT
+
 defmodule AshRateLimiter do
   @moduledoc """
   An extension for `Ash.Resource` which adds the ability to rate limit access to actions.

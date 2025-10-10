@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2025 James Harton
+#
+# SPDX-License-Identifier: MIT
+
 defmodule Example.Post do
   @moduledoc false
   use Ash.Resource, data_layer: Ash.DataLayer.Ets, domain: Example, extensions: [AshRateLimiter]

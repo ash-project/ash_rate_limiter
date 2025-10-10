@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2025 James Harton
+#
+# SPDX-License-Identifier: MIT
+
 defmodule AshRateLimiter.Transformer do
   @moduledoc """
   A Spark DSL transformer for rate limiting.

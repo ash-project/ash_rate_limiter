@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2025 James Harton
+#
+# SPDX-License-Identifier: MIT
+
 defmodule AshRateLimiter.BuiltinChanges do
   @moduledoc """
   Change helpers to allow direct usage in mutation actions.

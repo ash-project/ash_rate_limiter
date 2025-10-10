@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2025 James Harton
+#
+# SPDX-License-Identifier: MIT
+
 defmodule AshRateLimiter.BuiltinPreparations do
   @moduledoc """
   Preparation helpers to allow direct usage in read actions.

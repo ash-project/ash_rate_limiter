@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2025 James Harton
+#
+# SPDX-License-Identifier: MIT
+
 defmodule AshRateLimiter.PreparationTest do
   use ExUnit.Case, async: true
   alias AshRateLimiter.Preparation
