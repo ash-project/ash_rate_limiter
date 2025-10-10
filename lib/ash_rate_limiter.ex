@@ -78,7 +78,7 @@ defmodule AshRateLimiter do
     ]
   }
 
-  defstruct [:__identifier__, :action, :limit, :per, :key, :description]
+  defstruct [:__identifier__, :__spark_metadata__, :action, :limit, :per, :key, :description]
 
   @type keyfun ::
           (Ash.Query.t() | Ash.Changeset.t() -> String.t())
@@ -86,6 +86,7 @@ defmodule AshRateLimiter do
 
   @type t :: %__MODULE__{
           __identifier__: any,
+          __spark_metadata__: Spark.Dsl.Entity.spark_meta(),
           action: atom,
           limit: pos_integer,
           per: pos_integer | Duration.t(),
