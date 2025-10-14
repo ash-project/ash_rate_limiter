@@ -16,13 +16,7 @@ defmodule Mix.Tasks.AshRateLimiter.InstallTest do
     ]
   end
 
-  test "without --setup-hammer flag does not create Hammer module", %{igniter: igniter} do
-    igniter
-    |> Igniter.compose_task("ash_rate_limiter.install", [])
-    |> refute_creates("lib/test/hammer.ex")
-  end
-
-  test "with --setup-hammer creates Hammer module with ETS backend", %{igniter: igniter} do
+  test "creates Hammer module with ETS backend", %{igniter: igniter} do
     igniter
     |> Igniter.compose_task("ash_rate_limiter.install", ["--setup-hammer"])
     |> assert_creates("lib/test/hammer.ex")
@@ -31,20 +25,10 @@ defmodule Mix.Tasks.AshRateLimiter.InstallTest do
     2 |   use Hammer, backend: :ets
     3 | end
     """)
-  end
-
-  test "with --setup-hammer adds Hammer to supervision tree", %{igniter: igniter} do
-    igniter
-    |> Igniter.compose_task("ash_rate_limiter.install", ["--setup-hammer"])
     |> assert_has_patch("lib/test/application.ex", """
       - | children = []
       + | children = [{Test.Hammer, [clean_period: 60000]}]
     """)
-  end
-
-  test "with --setup-hammer configures Hammer in config.exs", %{igniter: igniter} do
-    igniter
-    |> Igniter.compose_task("ash_rate_limiter.install", ["--setup-hammer"])
     |> assert_has_patch("config/config.exs", """
     2 | config :test, ash_rate_limiter: [hammer: Test.Hammer]
     """)
@@ -55,14 +39,6 @@ defmodule Mix.Tasks.AshRateLimiter.InstallTest do
     |> Igniter.compose_task("ash_rate_limiter.install", [])
     |> apply_igniter!()
     |> Igniter.compose_task("ash_rate_limiter.install", [])
-    |> assert_unchanged()
-  end
-
-  test "installation with --setup-hammer is idempotent", %{igniter: igniter} do
-    igniter
-    |> Igniter.compose_task("ash_rate_limiter.install", ["--setup-hammer"])
-    |> apply_igniter!()
-    |> Igniter.compose_task("ash_rate_limiter.install", ["--setup-hammer"])
     |> assert_unchanged()
   end
 end

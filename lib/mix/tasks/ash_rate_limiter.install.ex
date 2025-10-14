@@ -21,30 +21,18 @@ if Code.ensure_loaded?(Igniter) do
     @impl Igniter.Mix.Task
     def info(_argv, _source) do
       %Igniter.Mix.Task.Info{
-        schema: [
-          setup_hammer: :boolean
-        ],
-        defaults: [
-          setup_hammer: false
-        ],
         adds_deps: []
       }
     end
 
     @impl Igniter.Mix.Task
     def igniter(igniter) do
-      opts = igniter.args.options
-
       igniter =
         igniter
         |> Igniter.Project.Formatter.import_dep(:ash_rate_limiter)
         |> Spark.Igniter.prepend_to_section_order(:"Ash.Resource", [:rate_limit])
 
-      if opts[:setup_hammer] do
-        setup_hammer_backend(igniter)
-      else
-        igniter
-      end
+      setup_hammer_backend(igniter)
     end
 
     defp setup_hammer_backend(igniter) do
