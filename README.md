@@ -22,6 +22,32 @@ Uses the excellent [hammer](https://hex.pm/packages/hammer) to provide rate limi
 
 ## Installation
 
+### Using Igniter (Recommended)
+
+The easiest way to install `ash_rate_limiter` is using [Igniter](https://hexdocs.pm/igniter):
+
+```bash
+mix igniter.install ash_rate_limiter
+```
+
+This will:
+- Add the dependency to your `mix.exs`
+- Configure the formatter to handle AshRateLimiter DSL
+- Set up proper Spark DSL section ordering
+
+If you want to also set up a Hammer backend module automatically:
+
+```bash
+mix igniter.install ash_rate_limiter --setup-hammer
+```
+
+This will additionally:
+- Create a Hammer module (e.g., `MyApp.Hammer`)
+- Add it to your application supervision tree
+- Configure it in your `config.exs`
+
+### Manual Installation
+
 Add `ash_rate_limiter` to your list of dependencies in `mix.exs`:
 
 ```elixir
@@ -32,9 +58,18 @@ def deps do
 end
 ```
 
+And add `:ash_rate_limiter` to your `.formatter.exs`:
+
+```elixir
+[
+  import_deps: [:ash, :ash_rate_limiter],
+  # ... other formatter config
+]
+```
+
 ## Quick Start
 
-1. **Add a Hammer module**: You need to create a Hammer module:
+1. **Add a Hammer module**: You need to create a Hammer module (skip if you used `--setup-hammer`):
 
 ```elixir
 # lib/my_app/hammer.ex
@@ -43,7 +78,7 @@ defmodule MyApp.Hammer do
 end
 ```
 
-2. **Add the rate limiter to your application's supervision tree**: (more information about `:clean_period` in [Hammer](https://hexdocs.pm/hammer/tutorial.html#step-2-start-the-rate-limiter)):
+2. **Add the rate limiter to your application's supervision tree** (skip if you used `--setup-hammer`): (more information about `:clean_period` in [Hammer](https://hexdocs.pm/hammer/tutorial.html#step-2-start-the-rate-limiter)):
 
 ```elixir
 # lib/my_app/application.ex
@@ -61,7 +96,15 @@ end
   end
 ```
 
-3. **Add to your resource**: Use the `rate_limit` DSL section in your Ash resource:
+3. **Configure the Hammer backend** (skip if you used `--setup-hammer`): Add configuration to point to your Hammer module:
+
+```elixir
+# config/config.exs
+config :my_app, :ash_rate_limiter,
+  hammer: MyApp.Hammer
+```
+
+4. **Add to your resource**: Use the `rate_limit` DSL section in your Ash resource:
 
 ```elixir
 defmodule MyApp.Post do
@@ -84,7 +127,7 @@ defmodule MyApp.Post do
 end
 ```
 
-4. **That's it!** Your actions are now rate limited. When the limit is exceeded, an `AshRateLimiter.LimitExceeded` error will be raised.
+5. **That's it!** Your actions are now rate limited. When the limit is exceeded, an `AshRateLimiter.LimitExceeded` error will be raised.
 
 ## Basic Usage
 
