@@ -15,7 +15,7 @@ spark_locals_without_parens = [
 [
   inputs: ["{mix,.formatter,.check}.exs", "{config,lib,test}/**/*.{ex,exs}"],
   plugins: [Spark.Formatter],
-  import_deps: [:ash, :ash_rate_limiter],
+  import_deps: [:ash],
   locals_without_parens: spark_locals_without_parens,
   export: [
     locals_without_parens: spark_locals_without_parens

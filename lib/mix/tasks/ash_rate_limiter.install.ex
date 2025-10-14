@@ -27,7 +27,7 @@ if Code.ensure_loaded?(Igniter) do
         defaults: [
           setup_hammer: false
         ],
-        adds_deps: [{:ash_rate_limiter, "~> 0.1.1"}, {:hammer, "~> 7.1.0"}]
+        adds_deps: []
       }
     end
 
