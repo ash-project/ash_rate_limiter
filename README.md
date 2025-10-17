@@ -35,17 +35,6 @@ This will:
 - Configure the formatter to handle AshRateLimiter DSL
 - Set up proper Spark DSL section ordering
 
-If you want to also set up a Hammer backend module automatically:
-
-```bash
-mix igniter.install ash_rate_limiter --setup-hammer
-```
-
-This will additionally:
-- Create a Hammer module (e.g., `MyApp.Hammer`)
-- Add it to your application supervision tree
-- Configure it in your `config.exs`
-
 ### Manual Installation
 
 Add `ash_rate_limiter` to your list of dependencies in `mix.exs`:
@@ -69,7 +58,7 @@ And add `:ash_rate_limiter` to your `.formatter.exs`:
 
 ## Quick Start
 
-1. **Add a Hammer module**: You need to create a Hammer module (skip if you used `--setup-hammer`):
+1. **Add a Hammer module**: You need to create a Hammer module:
 
 ```elixir
 # lib/my_app/hammer.ex
@@ -78,7 +67,7 @@ defmodule MyApp.Hammer do
 end
 ```
 
-2. **Add the rate limiter to your application's supervision tree** (skip if you used `--setup-hammer`): (more information about `:clean_period` in [Hammer](https://hexdocs.pm/hammer/tutorial.html#step-2-start-the-rate-limiter)):
+2. **Add the rate limiter to your application's supervision tree**: (more information about `:clean_period` in [Hammer](https://hexdocs.pm/hammer/tutorial.html#step-2-start-the-rate-limiter)):
 
 ```elixir
 # lib/my_app/application.ex
@@ -96,7 +85,7 @@ end
   end
 ```
 
-3. **Configure the Hammer backend** (skip if you used `--setup-hammer`): Add configuration to point to your Hammer module:
+3. **Configure the Hammer backend** Add configuration to point to your Hammer module:
 
 ```elixir
 # config/config.exs
