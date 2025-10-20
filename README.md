@@ -22,6 +22,21 @@ Uses the excellent [hammer](https://hex.pm/packages/hammer) to provide rate limi
 
 ## Installation
 
+### Using Igniter (Recommended)
+
+The easiest way to install `ash_rate_limiter` is using [Igniter](https://hexdocs.pm/igniter):
+
+```bash
+mix igniter.install ash_rate_limiter
+```
+
+This will:
+- Add the dependency to your `mix.exs`
+- Configure the formatter to handle AshRateLimiter DSL
+- Set up proper Spark DSL section ordering
+
+### Manual Installation
+
 Add `ash_rate_limiter` to your list of dependencies in `mix.exs`:
 
 ```elixir
@@ -30,6 +45,15 @@ def deps do
     {:ash_rate_limiter, "~> 0.1.1"}
   ]
 end
+```
+
+And add `:ash_rate_limiter` to your `.formatter.exs`:
+
+```elixir
+[
+  import_deps: [:ash, :ash_rate_limiter],
+  # ... other formatter config
+]
 ```
 
 ## Quick Start
@@ -61,7 +85,15 @@ end
   end
 ```
 
-3. **Add to your resource**: Use the `rate_limit` DSL section in your Ash resource:
+3. **Configure the Hammer backend** Add configuration to point to your Hammer module:
+
+```elixir
+# config/config.exs
+config :my_app, :ash_rate_limiter,
+  hammer: MyApp.Hammer
+```
+
+4. **Add to your resource**: Use the `rate_limit` DSL section in your Ash resource:
 
 ```elixir
 defmodule MyApp.Post do
@@ -84,7 +116,7 @@ defmodule MyApp.Post do
 end
 ```
 
-4. **That's it!** Your actions are now rate limited. When the limit is exceeded, an `AshRateLimiter.LimitExceeded` error will be raised.
+5. **That's it!** Your actions are now rate limited. When the limit is exceeded, an `AshRateLimiter.LimitExceeded` error will be raised.
 
 ## Basic Usage
 
