@@ -5,6 +5,8 @@
 defmodule AshRateLimiter.MixProject do
   use Mix.Project
 
+  @moduledoc "Rate limit your Ash actions using Hammer"
+
   @version "0.2.0"
 
   def project do
