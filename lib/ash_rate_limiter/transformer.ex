@@ -47,22 +47,12 @@ defmodule AshRateLimiter.Transformer do
            """
          )}
 
-      action when action.type in [:create, :read, :update, :destroy] ->
+      action when action.type in [:create, :read, :update, :destroy, :action] ->
         {:ok, action}
-
-      action when action.type == :action ->
-        {:error,
-         DslError.exception(
-           module: get_persisted(dsl, :module),
-           path: [:rate_limit, :action, entity.action, :action],
-           message: """
-           Generic actions are not supported by the rate limiter DSL, instead you should add a call to your hammer module directly inside your action implementation.
-           """
-         )}
     end
   end
 
-  defp add_change_or_preparation(entity, action, dsl) when action.type == :read,
+  defp add_change_or_preparation(entity, action, dsl) when action.type in [:read, :action],
     do: add_preparation_to_action(entity, action, dsl)
 
   defp add_change_or_preparation(entity, action, dsl),

@@ -41,4 +41,32 @@ defmodule AshRateLimiter.PreparationTest do
       assert %AshRateLimiter.LimitExceeded{} = error
     end
   end
+
+  describe "prepare/3 with generic actions" do
+    test "calling at a rate lower than specified is fine", %{test: test} do
+      input =
+        Post
+        |> Ash.ActionInput.for_action(:limited_action, %{message: "hello"})
+        |> Ash.ActionInput.set_context(%{key: to_string(test)})
+
+      {:ok, _} = Ash.run_action(input)
+      {:ok, _} = Ash.run_action(input)
+      {:ok, _} = Ash.run_action(input)
+    end
+
+    test "calling at a rate higher than returns an error", %{test: test} do
+      input =
+        Post
+        |> Ash.ActionInput.for_action(:limited_action, %{message: "hello"})
+        |> Ash.ActionInput.set_context(%{key: to_string(test)})
+
+      {:ok, _} = Ash.run_action(input)
+      {:ok, _} = Ash.run_action(input)
+      {:ok, _} = Ash.run_action(input)
+      {:error, error} = Ash.run_action(input)
+
+      assert %Ash.Error.Forbidden{errors: [error]} = error
+      assert %AshRateLimiter.LimitExceeded{} = error
+    end
+  end
 end
