@@ -176,16 +176,6 @@ defmodule MyApp.Post do
 end
 ```
 
-Or use the built-in helpers:
-
-```elixir
-actions do
-  create :create do
-    change rate_limit(limit: 10, per: :timer.minutes(5))
-  end
-end
-```
-
 ### Custom Key Functions
 
 The key function determines how requests are grouped for rate limiting:
