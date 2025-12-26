@@ -82,5 +82,29 @@ defmodule AshRateLimiter.TransformerTest do
       default_read_action = Info.action(Post, :read)
       assert default_read_action.preparations == []
     end
+
+    test "preparations are added to generic actions" do
+      # Rate limited generic action should have a preparation
+      limited_action = Info.action(Post, :limited_action)
+      assert length(limited_action.preparations) == 1
+
+      preparation = hd(limited_action.preparations)
+      assert elem(preparation.preparation, 0) == Preparation
+    end
+
+    test "rate limited generic actions are enforced", %{test: test} do
+      input =
+        Post
+        |> Ash.ActionInput.for_action(:limited_action, %{message: "hello"})
+        |> Ash.ActionInput.set_context(%{key: to_string(test)})
+
+      {:ok, _} = Ash.run_action(input)
+      {:ok, _} = Ash.run_action(input)
+      {:ok, _} = Ash.run_action(input)
+      {:error, error} = Ash.run_action(input)
+
+      assert %Forbidden{errors: [error]} = error
+      assert %LimitExceeded{} = error
+    end
   end
 end

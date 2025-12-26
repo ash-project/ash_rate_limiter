@@ -85,8 +85,8 @@ defmodule AshRateLimiter do
   defstruct [:__identifier__, :__spark_metadata__, :action, :limit, :per, :key, :description]
 
   @type keyfun ::
-          (Ash.Query.t() | Ash.Changeset.t() -> String.t())
-          | (Ash.Query.t() | Ash.Changeset.t(), map -> String.t())
+          (Ash.Query.t() | Ash.Changeset.t() | Ash.ActionInput.t() -> String.t())
+          | (Ash.Query.t() | Ash.Changeset.t() | Ash.ActionInput.t(), map -> String.t())
 
   @type t :: %__MODULE__{
           __identifier__: any,
@@ -123,6 +123,8 @@ defmodule AshRateLimiter do
   The default bucket key generation function for `AshRateLimiter`.
 
   Generates a key based on the domain, resource and action names. For update and destroy actions it will also include the primary key(s) in the key.
+
+  Works with `Ash.Query`, `Ash.Changeset`, and `Ash.ActionInput` (for generic actions).
 
   ## Options
 
@@ -167,6 +169,8 @@ defmodule AshRateLimiter do
       ...> |> key_for_action(%{}, include_tenant?: true)
       "example/post/create?tenant=Hill%20Valley%20Telegraph"
   """
+  @spec key_for_action(Ash.Query.t() | Ash.Changeset.t() | Ash.ActionInput.t(), map, keyword) ::
+          String.t()
   def key_for_action(query_or_changeset, context, opts \\ []) do
     opts = Spark.Options.validate!(opts, @key_for_action_schema)
 

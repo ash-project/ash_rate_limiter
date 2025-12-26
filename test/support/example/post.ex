@@ -12,12 +12,21 @@ defmodule Example.Post do
     create :limited_create, accept: :*
     read :limited_read
     update :unlimited_update, accept: [:title, :body]
+
+    action :limited_action, :string do
+      argument :message, :string, allow_nil?: false
+
+      run fn input, _context ->
+        {:ok, "Received: #{input.arguments.message}"}
+      end
+    end
   end
 
   rate_limit do
     hammer Example.Hammer
     action :limited_create, limit: 3, per: :timer.seconds(3), key: &key_fun/2
     action :limited_read, limit: 3, per: :timer.seconds(3), key: &key_fun/2
+    action :limited_action, limit: 3, per: :timer.seconds(3), key: &key_fun/2
   end
 
   attributes do
