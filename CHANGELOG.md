@@ -11,6 +11,15 @@ See [Conventional Commits](Https://conventionalcommits.org) for commit guideline
 
 <!-- changelog -->
 
+## v0.2.1 (2026-01-13)
+
+
+
+
+### Improvements:
+
+* add generic action support. (#56) by wjrtz
+
 ## v0.2.0 (2025-10-20)
 
 
