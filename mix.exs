@@ -5,7 +5,7 @@
 defmodule AshRateLimiter.MixProject do
   use Mix.Project
 
-  @moduledoc "Rate limit your Ash actions using Hammer"
+  @moduledoc "Rate limit your Ash actions"
 
   @version "0.2.1"
 
@@ -90,7 +90,7 @@ defmodule AshRateLimiter.MixProject do
   defp deps do
     [
       {:ash, "~> 3.0"},
-      {:hammer, "~> 7.0"},
+      {:hammer, "~> 7.0", optional: true},
       {:plug, "~> 1.17", optional: true},
       {:spark, "~> 2.0"},
       {:simple_sat, "~> 0.1", only: [:dev, :test]},

@@ -12,14 +12,14 @@ defmodule AshRateLimiter do
     describe: """
     Configure rate limiting for actions.
 
-    ## Hammer
+    ## Backend
 
-    This library uses the [hammer](https://hex.pm/packages/hammer) package to provide
-    rate limiting features.  See [hammer's documentation](https://hexdocs.pm/hammer) for more information.
+    This library uses a pluggable backend for rate limiting. Any module implementing the
+    `AshRateLimiter.Backend` behaviour can be used. See `AshRateLimiter.Backend` for more information.
 
     ## Keys
 
-    Hammer uses a "key" to identify which bucket to allocate an event against.  You can use this to tune the rate limit for specific users or events.
+    The backend uses a "key" to identify which bucket to allocate an event against.  You can use this to tune the rate limit for specific users or events.
 
     You can provide either a statically configured string key, or a function of arity one or two, which when given a query/changeset and optional context object can generate a key.
 
@@ -28,6 +28,7 @@ defmodule AshRateLimiter do
     examples: [
       """
       rate_limit do
+        backend MyApp.RateLimiter
         action :create, limit: 10, per: :timer.minutes(5)
       end
       """
@@ -69,20 +70,27 @@ defmodule AshRateLimiter do
             type: :string,
             required: false,
             doc: "A description of the rate limit"
+          ],
+          on: [
+            type: {:one_of, [:before_action, :before_transaction]},
+            required: false,
+            default: :before_action,
+            doc:
+              "The lifecycle hook to use for rate limiting. `:before_action` (default) runs inside the transaction; `:before_transaction` runs outside the transaction, after validations."
           ]
         ]
       }
     ],
     schema: [
-      hammer: [
-        type: {:behaviour, Hammer},
+      backend: [
+        type: {:behaviour, AshRateLimiter.Backend},
         required: true,
-        doc: "The hammer module to use for rate limiting"
+        doc: "The rate limiting backend module"
       ]
     ]
   }
 
-  defstruct [:__identifier__, :__spark_metadata__, :action, :limit, :per, :key, :description]
+  defstruct [:__identifier__, :__spark_metadata__, :action, :limit, :per, :key, :description, :on]
 
   @type keyfun ::
           (Ash.Query.t() | Ash.Changeset.t() | Ash.ActionInput.t() -> String.t())
