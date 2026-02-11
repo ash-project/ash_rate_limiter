@@ -10,6 +10,8 @@ defmodule Example.Application do
   @doc false
   @impl true
   def start(_type, _args) do
+    Example.CountingBackend.start()
+
     [{Example.Hammer, clean_period: :timer.minutes(1)}]
     |> Supervisor.start_link(strategy: :one_for_one, name: __MODULE__)
   end

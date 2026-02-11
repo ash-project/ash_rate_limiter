@@ -11,6 +11,11 @@ defmodule AshRateLimiter.TransformerTest do
   alias AshRateLimiter.Preparation
   alias Example.Post
 
+  setup %{test: test} do
+    Example.CountingBackend.reset(to_string(test))
+    :ok
+  end
+
   describe "transformer behavior" do
     test "rate limited actions are enforced", %{test: test} do
       changeset =

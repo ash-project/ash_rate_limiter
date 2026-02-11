@@ -18,6 +18,11 @@ defmodule AshRateLimiter.ChangeTest do
     end
   end
 
+  setup %{test: test} do
+    Example.CountingBackend.reset(to_string(test))
+    :ok
+  end
+
   describe "change/3" do
     test "calling at a rate lower than specified is fine", %{test: test} do
       changeset =

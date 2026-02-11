@@ -23,7 +23,7 @@ defmodule Example.Post do
   end
 
   rate_limit do
-    backend Example.Hammer
+    backend Example.CountingBackend
     action :limited_create, limit: 3, per: :timer.seconds(3), key: &key_fun/2
     action :limited_read, limit: 3, per: :timer.seconds(3), key: &key_fun/2
     action :limited_action, limit: 3, per: :timer.seconds(3), key: &key_fun/2

@@ -18,6 +18,11 @@ defmodule AshRateLimiter.PreparationTest do
     end
   end
 
+  setup %{test: test} do
+    Example.CountingBackend.reset(to_string(test))
+    :ok
+  end
+
   describe "prepare/3" do
     test "calling at a rate lower than specified is fine", %{test: test} do
       query = Post |> Ash.Query.for_read(:limited_read)
