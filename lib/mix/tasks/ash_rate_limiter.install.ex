@@ -10,11 +10,6 @@ if Code.ensure_loaded?(Igniter) do
     Installs AshRateLimiter into your application.
 
     Should be run with `mix igniter.install ash_rate_limiter`
-
-    ## Options
-
-    * `--setup-hammer` - Generates a Hammer backend module and adds it to your
-      application supervision tree (default: false)
     """
     @shortdoc "Installs AshRateLimiter"
 
@@ -23,7 +18,7 @@ if Code.ensure_loaded?(Igniter) do
     @impl Igniter.Mix.Task
     def info(_argv, _source) do
       %Igniter.Mix.Task.Info{
-        adds_deps: []
+        adds_deps: [{:hammer, "~> 7.0"}]
       }
     end
 
