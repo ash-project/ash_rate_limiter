@@ -33,13 +33,11 @@ if Code.ensure_loaded?(Igniter) do
     end
 
     defp setup_hammer_backend(igniter) do
-      otp_app = Igniter.Project.Application.app_name(igniter)
       hammer_module = Igniter.Project.Module.module_name(igniter, "Hammer")
 
       igniter
       |> create_hammer_module(hammer_module)
       |> add_to_supervision_tree(hammer_module)
-      |> configure_hammer(otp_app, hammer_module)
     end
 
     defp create_hammer_module(igniter, module_name) do
@@ -57,16 +55,6 @@ if Code.ensure_loaded?(Igniter) do
       Igniter.Project.Application.add_new_child(
         igniter,
         {module_name, clean_period: :timer.minutes(1)}
-      )
-    end
-
-    defp configure_hammer(igniter, otp_app, hammer_module) do
-      Igniter.Project.Config.configure(
-        igniter,
-        "config.exs",
-        otp_app,
-        [:ash_rate_limiter, :hammer],
-        hammer_module
       )
     end
   end

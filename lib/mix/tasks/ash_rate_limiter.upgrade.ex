@@ -33,12 +33,52 @@ if Code.ensure_loaded?(Igniter) do
 
     defp upgrades do
       %{
-        Version.parse!("1.0.0") => &add_hammer_dep/2
+        Version.parse!("1.0.0") => &upgrade_to_1_0_0/2
       }
     end
 
-    defp add_hammer_dep(igniter, _opts) do
-      Igniter.Project.Deps.add_dep(igniter, {:hammer, "~> 7.0"})
+    defp upgrade_to_1_0_0(igniter, _opts) do
+      igniter
+      |> Igniter.Project.Deps.add_dep({:hammer, "~> 7.0"})
+      |> rename_hammer_to_backend()
+    end
+
+    defp rename_hammer_to_backend(igniter) do
+      {igniter, resources} = Ash.Resource.Igniter.list_resources(igniter)
+
+      Enum.reduce(resources, igniter, fn resource, igniter ->
+        {igniter, result} = Spark.Igniter.get_option(igniter, resource, [:rate_limit, :hammer])
+
+        case result do
+          {:ok, value} ->
+            igniter
+            |> Spark.Igniter.set_option(resource, [:rate_limit, :backend], value)
+            |> remove_hammer_option(resource)
+
+          :error ->
+            igniter
+        end
+      end)
+    end
+
+    defp remove_hammer_option(igniter, resource) do
+      Igniter.Project.Module.find_and_update_module!(igniter, resource, fn zipper ->
+        with {:ok, zipper} <-
+               Igniter.Code.Function.move_to_function_call_in_current_scope(
+                 zipper,
+                 :rate_limit,
+                 1
+               ),
+             {:ok, zipper} <- Igniter.Code.Common.move_to_do_block(zipper) do
+          {:ok, remove_hammer_call(zipper)}
+        end
+      end)
+    end
+
+    defp remove_hammer_call(zipper) do
+      Igniter.Code.Common.remove(zipper, fn z ->
+        Igniter.Code.Function.function_call?(z, :hammer, 1)
+      end)
     end
   end
 else

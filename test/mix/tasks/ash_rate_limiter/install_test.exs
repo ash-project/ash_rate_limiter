@@ -29,9 +29,6 @@ defmodule Mix.Tasks.AshRateLimiter.InstallTest do
       - | children = []
       + | children = [{Test.Hammer, [clean_period: 60000]}]
     """)
-    |> assert_has_patch("config/config.exs", """
-    2 | config :test, ash_rate_limiter: [hammer: Test.Hammer]
-    """)
   end
 
   test "installation is idempotent", %{igniter: igniter} do
