@@ -25,3 +25,6 @@ ash_rate_limiter-*.tar
 
 # Temporary files, for example, from tests.
 /tmp/
+
+# Claude Code local settings.
+.claude/

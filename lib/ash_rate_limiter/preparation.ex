@@ -55,20 +55,7 @@ defmodule AshRateLimiter.Preparation do
 
   def prepare(%Query{} = query, opts, context) do
     if is_nil(opts[:action]) or opts[:action] == query.action.name do
-      query
-      |> Query.before_action(fn query ->
-        context =
-          context
-          |> Map.from_struct()
-          |> Map.merge(query.context)
-
-        with {:ok, key} <- get_key(query, opts, context),
-             :ok <- hammer_it(query, Keyword.put(opts, :key, key)) do
-          query
-        else
-          {:error, reason} -> Query.add_error(query, reason)
-        end
-      end)
+      Query.before_action(query, &apply_rate_limit(&1, opts, context))
     else
       query
     end
@@ -76,22 +63,37 @@ defmodule AshRateLimiter.Preparation do
 
   def prepare(%ActionInput{} = input, opts, context) do
     if is_nil(opts[:action]) or opts[:action] == input.action.name do
-      input
-      |> ActionInput.before_action(fn input ->
-        context =
-          context
-          |> Map.from_struct()
-          |> Map.merge(input.context)
-
-        with {:ok, key} <- get_key(input, opts, context),
-             :ok <- hammer_it(input, Keyword.put(opts, :key, key)) do
-          input
-        else
-          {:error, reason} -> {:error, reason}
-        end
-      end)
+      ActionInput.before_action(input, &apply_rate_limit(&1, opts, context))
     else
       input
+    end
+  end
+
+  defp apply_rate_limit(%Query{} = query, opts, context) do
+    context =
+      context
+      |> Map.from_struct()
+      |> Map.merge(query.context)
+
+    with {:ok, key} <- get_key(query, opts, context),
+         :ok <- hammer_it(query, Keyword.put(opts, :key, key)) do
+      query
+    else
+      {:error, reason} -> Query.add_error(query, reason)
+    end
+  end
+
+  defp apply_rate_limit(%ActionInput{} = input, opts, context) do
+    context =
+      context
+      |> Map.from_struct()
+      |> Map.merge(input.context)
+
+    with {:ok, key} <- get_key(input, opts, context),
+         :ok <- hammer_it(input, Keyword.put(opts, :key, key)) do
+      input
+    else
+      {:error, reason} -> {:error, reason}
     end
   end
 

@@ -45,22 +45,23 @@ defmodule AshRateLimiter.Change do
   @impl true
   def change(changeset, opts, context) do
     if is_nil(opts[:action]) or opts[:action] == changeset.action.name do
-      changeset
-      |> Changeset.before_action(fn changeset ->
-        context =
-          context
-          |> Map.from_struct()
-          |> Map.merge(changeset.context)
-
-        with {:ok, key} <- get_key(changeset, opts, context),
-             :ok <- hammer_it(changeset, Keyword.put(opts, :key, key)) do
-          changeset
-        else
-          {:error, reason} -> Changeset.add_error(changeset, reason)
-        end
-      end)
+      Changeset.before_action(changeset, &apply_rate_limit(&1, opts, context))
     else
       changeset
+    end
+  end
+
+  defp apply_rate_limit(changeset, opts, context) do
+    context =
+      context
+      |> Map.from_struct()
+      |> Map.merge(changeset.context)
+
+    with {:ok, key} <- get_key(changeset, opts, context),
+         :ok <- hammer_it(changeset, Keyword.put(opts, :key, key)) do
+      changeset
+    else
+      {:error, reason} -> Changeset.add_error(changeset, reason)
     end
   end
 
