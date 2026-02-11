@@ -9,14 +9,14 @@ An extension for `Ash.Resource` which adds the ability to rate limit access to a
 ## rate_limit
 Configure rate limiting for actions.
 
-#### Hammer
+#### Backend
 
-This library uses the [hammer](https://hex.pm/packages/hammer) package to provide
-rate limiting features.  See [hammer's documentation](https://hexdocs.pm/hammer) for more information.
+This library uses a pluggable backend for rate limiting. Any module implementing the
+`AshRateLimiter.Backend` behaviour can be used. See `AshRateLimiter.Backend` for more information.
 
 #### Keys
 
-Hammer uses a "key" to identify which bucket to allocate an event against.  You can use this to tune the rate limit for specific users or events.
+The backend uses a "key" to identify which bucket to allocate an event against.  You can use this to tune the rate limit for specific users or events.
 
 You can provide either a statically configured string key, or a function of arity one or two, which when given a query/changeset and optional context object can generate a key.
 
@@ -30,6 +30,7 @@ The default is `AshRateLimiter.key_for_action/2`. See it's docs for more informa
 ### Examples
 ```
 rate_limit do
+  backend MyApp.RateLimiter
   action :create, limit: 10, per: :timer.minutes(5)
 end
 
@@ -42,7 +43,7 @@ end
 
 | Name | Type | Default | Docs |
 |------|------|---------|------|
-| [`hammer`](#rate_limit-hammer){: #rate_limit-hammer .spark-required} | `module` |  | The hammer module to use for rate limiting |
+| [`backend`](#rate_limit-backend){: #rate_limit-backend .spark-required} | `module` |  | The rate limiting backend module |
 
 
 
@@ -74,6 +75,7 @@ It does this by adding a global change or preparation to the resource with the p
 | [`per`](#rate_limit-action-per){: #rate_limit-action-per .spark-required} | `pos_integer` |  | The time period (in milliseconds) for in which events are counted |
 | [`key`](#rate_limit-action-key){: #rate_limit-action-key } | `String.t \| (any -> any) \| (any, any -> any)` | `&AshRateLimiter.key_for_action/2` | The key used to identify the event. See above. |
 | [`description`](#rate_limit-action-description){: #rate_limit-action-description } | `String.t` |  | A description of the rate limit |
+| [`on`](#rate_limit-action-on){: #rate_limit-action-on } | `:before_action \| :before_transaction` | `:before_action` | The lifecycle hook to use for rate limiting. `:before_action` (default) runs inside the transaction; `:before_transaction` runs outside the transaction, after validations. |
 
 
 

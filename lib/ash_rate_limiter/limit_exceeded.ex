@@ -6,7 +6,7 @@ defmodule AshRateLimiter.LimitExceeded do
   @moduledoc """
   An exception which is raised or returned when an action invocation exceeds the defined limits.
   """
-  use Splode.Error, fields: [:action, :hammer, :limit, :per, :key], class: :forbidden
+  use Splode.Error, fields: [:action, :backend, :limit, :per, :key], class: :forbidden
 
   def message(_) do
     "Rate limit exceeded"

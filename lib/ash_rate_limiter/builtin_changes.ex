@@ -25,6 +25,13 @@ defmodule AshRateLimiter.BuiltinChanges do
                           default: &AshRateLimiter.key_for_action/2,
                           doc:
                             "The key used to identify the event. See the docs for `AshRateLimiter.key_for_action/2` for more."
+                        ],
+                        on: [
+                          type: {:one_of, [:before_action, :before_transaction]},
+                          required: false,
+                          default: :before_action,
+                          doc:
+                            "The lifecycle hook to use for rate limiting. `:before_action` runs inside the transaction; `:before_transaction` runs outside the transaction, after validations."
                         ]
                       )
 
@@ -32,6 +39,7 @@ defmodule AshRateLimiter.BuiltinChanges do
           {:limit, pos_integer}
           | {:per, pos_integer}
           | {:key, String.t() | AshRateLimiter.keyfun()}
+          | {:on, :before_action | :before_transaction}
         ]
 
   @doc """

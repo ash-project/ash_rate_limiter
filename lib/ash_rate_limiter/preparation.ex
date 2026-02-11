@@ -38,6 +38,13 @@ defmodule AshRateLimiter.Preparation do
                      default: &AshRateLimiter.key_for_action/2,
                      doc:
                        "The key used to identify the event. See the docs for `AshRateLimiter.key_for_action/2`."
+                   ],
+                   on: [
+                     type: {:one_of, [:before_action, :before_transaction]},
+                     required: false,
+                     default: :before_action,
+                     doc:
+                       "The lifecycle hook to use for rate limiting. `:before_action` runs inside the transaction; `:before_transaction` runs outside the transaction, after validations."
                    ]
                  )
 
@@ -55,7 +62,13 @@ defmodule AshRateLimiter.Preparation do
 
   def prepare(%Query{} = query, opts, context) do
     if is_nil(opts[:action]) or opts[:action] == query.action.name do
-      Query.before_action(query, &apply_rate_limit(&1, opts, context))
+      case opts[:on] do
+        :before_transaction ->
+          Query.before_transaction(query, &apply_rate_limit(&1, opts, context))
+
+        :before_action ->
+          Query.before_action(query, &apply_rate_limit(&1, opts, context))
+      end
     else
       query
     end
@@ -63,7 +76,13 @@ defmodule AshRateLimiter.Preparation do
 
   def prepare(%ActionInput{} = input, opts, context) do
     if is_nil(opts[:action]) or opts[:action] == input.action.name do
-      ActionInput.before_action(input, &apply_rate_limit(&1, opts, context))
+      case opts[:on] do
+        :before_transaction ->
+          ActionInput.before_transaction(input, &apply_rate_limit(&1, opts, context))
+
+        :before_action ->
+          ActionInput.before_action(input, &apply_rate_limit(&1, opts, context))
+      end
     else
       input
     end
@@ -76,7 +95,7 @@ defmodule AshRateLimiter.Preparation do
       |> Map.merge(query.context)
 
     with {:ok, key} <- get_key(query, opts, context),
-         :ok <- hammer_it(query, Keyword.put(opts, :key, key)) do
+         :ok <- check_rate_limit(query, Keyword.put(opts, :key, key)) do
       query
     else
       {:error, reason} -> Query.add_error(query, reason)
@@ -90,19 +109,23 @@ defmodule AshRateLimiter.Preparation do
       |> Map.merge(input.context)
 
     with {:ok, key} <- get_key(input, opts, context),
-         :ok <- hammer_it(input, Keyword.put(opts, :key, key)) do
+         :ok <- check_rate_limit(input, Keyword.put(opts, :key, key)) do
       input
     else
       {:error, reason} -> {:error, reason}
     end
   end
 
-  defp hammer_it(query_or_input, opts) do
-    hammer = Info.rate_limit_hammer!(query_or_input.resource)
+  defp check_rate_limit(query_or_input, opts) do
+    backend = Info.rate_limit_backend!(query_or_input.resource)
 
-    case hammer.hit(opts[:key], opts[:per], opts[:limit]) do
-      {:allow, _} -> :ok
-      {:deny, _} -> {:error, LimitExceeded.exception([{:hammer, hammer} | opts])}
+    case backend.hit(opts[:key], opts[:per], opts[:limit]) do
+      {:allow, _} ->
+        :ok
+
+      {:deny, _} ->
+        error_opts = opts |> Keyword.drop([:on]) |> Keyword.put(:backend, backend)
+        {:error, LimitExceeded.exception(error_opts)}
     end
   end
 

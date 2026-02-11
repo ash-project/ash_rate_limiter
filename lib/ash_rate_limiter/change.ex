@@ -34,6 +34,13 @@ defmodule AshRateLimiter.Change do
                      required: false,
                      default: &AshRateLimiter.key_for_action/2,
                      doc: "The key used to identify the event. See above."
+                   ],
+                   on: [
+                     type: {:one_of, [:before_action, :before_transaction]},
+                     required: false,
+                     default: :before_action,
+                     doc:
+                       "The lifecycle hook to use for rate limiting. `:before_action` runs inside the transaction; `:before_transaction` runs outside the transaction, after validations."
                    ]
                  )
 
@@ -45,7 +52,13 @@ defmodule AshRateLimiter.Change do
   @impl true
   def change(changeset, opts, context) do
     if is_nil(opts[:action]) or opts[:action] == changeset.action.name do
-      Changeset.before_action(changeset, &apply_rate_limit(&1, opts, context))
+      case opts[:on] do
+        :before_transaction ->
+          Changeset.before_transaction(changeset, &apply_rate_limit(&1, opts, context))
+
+        :before_action ->
+          Changeset.before_action(changeset, &apply_rate_limit(&1, opts, context))
+      end
     else
       changeset
     end
@@ -58,19 +71,23 @@ defmodule AshRateLimiter.Change do
       |> Map.merge(changeset.context)
 
     with {:ok, key} <- get_key(changeset, opts, context),
-         :ok <- hammer_it(changeset, Keyword.put(opts, :key, key)) do
+         :ok <- check_rate_limit(changeset, Keyword.put(opts, :key, key)) do
       changeset
     else
       {:error, reason} -> Changeset.add_error(changeset, reason)
     end
   end
 
-  defp hammer_it(changeset, opts) do
-    hammer = Info.rate_limit_hammer!(changeset.resource)
+  defp check_rate_limit(changeset, opts) do
+    backend = Info.rate_limit_backend!(changeset.resource)
 
-    case hammer.hit(opts[:key], opts[:per], opts[:limit]) do
-      {:allow, _} -> :ok
-      {:deny, _} -> {:error, LimitExceeded.exception([{:hammer, hammer} | opts])}
+    case backend.hit(opts[:key], opts[:per], opts[:limit]) do
+      {:allow, _} ->
+        :ok
+
+      {:deny, _} ->
+        error_opts = opts |> Keyword.drop([:on]) |> Keyword.put(:backend, backend)
+        {:error, LimitExceeded.exception(error_opts)}
     end
   end
 
