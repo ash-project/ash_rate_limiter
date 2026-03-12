@@ -103,7 +103,7 @@ defmodule MyApp.Post do
 
   rate_limit do
     # Configure hammer backend
-    hammer MyApp.Hammer
+    backend MyApp.Hammer
     
     # Limit create action to 10 requests per 5 minutes
     action :create, limit: 10, per: :timer.minutes(5)
@@ -124,7 +124,7 @@ end
 
 ```elixir
 rate_limit do
-  hammer MyApp.Hammer
+  backend MyApp.Hammer
   action :create, limit: 5, per: :timer.minutes(1)
 end
 ```
@@ -133,7 +133,7 @@ end
 
 ```elixir
 rate_limit do
-  hammer MyApp.Hammer
+  backend MyApp.Hammer
   action :create, 
     limit: 10, 
     per: :timer.minutes(5),
@@ -147,7 +147,7 @@ end
 
 ```elixir
 rate_limit do
-  hammer MyApp.Hammer
+  backend MyApp.Hammer
   action :create, limit: 10, per: :timer.minutes(5)
   action :update, limit: 20, per: :timer.minutes(5) 
   action :read, limit: 100, per: :timer.minutes(1)
