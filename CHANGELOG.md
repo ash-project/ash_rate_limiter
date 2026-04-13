@@ -11,6 +11,29 @@ See [Conventional Commits](Https://conventionalcommits.org) for commit guideline
 
 <!-- changelog -->
 
+## v2.0.0 (2026-04-13)
+### Breaking Changes:
+
+* make rate limiter backend-pluggable with configurable lifecycle hooks (#62) by adamtharani
+
+* make rate limiter backend-pluggable with configurable lifecycle hooks by adamtharani
+
+
+
+### Features:
+
+* add hammer dep to igniter installer and create upgrade task by James Harton
+
+### Bug Fixes:
+
+* rename `hammer` to `backend` in installer and upgrader by James Harton
+
+* replace Hammer with deterministic counting backend in tests by James Harton
+
+### Improvements:
+
+* add generic action support. (#56) by wjrtz
+
 ## v1.0.0 (2026-02-11)
 ### Breaking Changes:
 

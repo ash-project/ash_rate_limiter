@@ -7,7 +7,7 @@ defmodule AshRateLimiter.MixProject do
 
   @moduledoc "Rate limit your Ash actions"
 
-  @version "1.0.0"
+  @version "2.0.0"
 
   def project do
     [
