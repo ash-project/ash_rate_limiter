@@ -11,6 +11,11 @@ See [Conventional Commits](Https://conventionalcommits.org) for commit guideline
 
 <!-- changelog -->
 
+## v2.0.1 (2026-08-17)
+
+* no-feature release because of retired 2.0.0 release.
+
+
 ## v1.0.0 (2026-02-11)
 ### Breaking Changes:
 
