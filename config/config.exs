@@ -9,6 +9,7 @@ config :ash,
   include_embedded_source_by_default?: false,
   show_keysets_for_all_actions?: false,
   default_page_type: :keyset,
+  default_string_length_count: :codepoints,
   policies: [no_filter_static_forbidden_reads?: false]
 
 config :spark,
